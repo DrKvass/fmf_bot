@@ -22,8 +22,9 @@ def sql_update_current(uid: int, value: int): # A simple sql code used in update
 
 def after_today(datum):
     current_date = datetime.now().date()
-    datum = (parse(datum, fuzzy=False).date())
-
+    datum = (parse(datum, dayfirst=True).date())
+    
+    print(datum, current_date)
     if datum > current_date:
         return True
     else:
@@ -44,15 +45,14 @@ def upadte_database(): # Function responsible for checking, which Nadomeščanja
 
         if not after_today(result_date):
             sql_update_current(result_uid, 0)
-            print(f"update_database {result_uid} : Succsess")
+            print(f"update_database {result_uid} : Succsess ({result_date}) set to: 0")
         elif after_today(result_date):
             sql_update_current(result_uid, 1)
-            print(f"update_database {result_uid}: Succsess")
+            print(f"update_database {result_uid} : Succsess ({result_date}) set to: 1")
         else:
             print(f"Critical error ---- : Error with updating in {result_uid}, {result_date}")
 upadte_database() # Updates database on boot
         
-
 class Nadomescanaja(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -155,22 +155,15 @@ class Nadomescanaja(commands.Cog):
         
         for role_results in results_all_roles: # Gre cez vsak rezultat po role-u posebaj
             if role_results != []: # Izbrise vse sezname vlog, ki so prazni (nimajo nadomescanj)
-                for result in results: # Za vsako nadomescanje posebi doda predel na izpisu
+                for result in role_results: # Za vsako nadomescanje posebi doda predel na izpisu
                 
                     uid, predmet, datum, ura, trajanje, učilnica, role, profesor, komentar, is_current = result
                     embed.add_field(name="\n", value="-------------------------------", inline=False)
-                    embed.add_field(name="Tehnična oznaka", value=uid, inline=False)
                     embed.add_field(name="Predmet:", value=predmet, inline=False)
+                    embed.add_field(name="Datum in ura:", value= "**__Datum__** : " + str(datum) + "\n**__Ura__** : " + str(ura) + ", " + str(trajanje), inline=True)
+                    embed.add_field(name="Dodatno : ", value="**__Učilnica__** :" + str(učilnica) + "\n**__Profesor__** : " + str(profesor) +"\n**__Komentar__** : " +str(komentar), inline=False)
 
-                    embed.add_field(name="Datum:", value=datum, inline=True)
-                    embed.add_field(name="Ura:", value=str(ura)+" + " + str(trajanje), inline=True)
-                    embed.add_field(name="Učilnica:", value=učilnica, inline=False)
-                    if profesor != None:
-                        embed.add_field(name="Profesor", value=profesor, inline=True)
-                    if komentar != None:
-                        embed.add_field(name="Komentar", value=komentar, inline=False)
-                    if uid == results[-1][0]:
-                        embed.add_field(name="\n", value="-------------------------------", inline=False)
+        embed.add_field(name="\n", value="-------------------------------", inline=False)
         
         embed.set_footer(text="Unofficial FMF bot")
         embed.set_author(name="uFMF Bot", icon_url="https://orlic.si/luka/FMF/fmf-logo.png")
@@ -196,19 +189,11 @@ class Nadomescanaja(commands.Cog):
             color=discord.Colour.from_rgb(0, 0, 255),
         )
         
-
         for uid, predmet, datum, ura, trajanje, učilnica, role, profesor, komentar, is_current in results:
             embed.add_field(name="\n", value="-------------------------------", inline=False)
-            embed.add_field(name="Tehnična oznaka", value=uid, inline=False)
-            embed.add_field(name="Predmet:", value=predmet, inline=False)
-
-            embed.add_field(name="Datum:", value=datum, inline=True)
-            embed.add_field(name="Ura:", value=str(ura)+" + " + str(trajanje), inline=True)
-            embed.add_field(name="Učilnica:", value=učilnica, inline=False)
-            if profesor != None:
-                embed.add_field(name="Profesor", value=profesor, inline=True)
-            if komentar != None:
-                embed.add_field(name="Komentar", value=komentar, inline=False)
+            embed.add_field(name="Predmet:", value= str(predmet) + "\n**__Tehnična oznaka__** : " + str(uid), inline=False)
+            embed.add_field(name="Datum in ura:", value= "**__Datum__** : " + str(datum) + "\n**__Ura__** : " + str(ura) + ", " + str(trajanje), inline=True)
+            embed.add_field(name="Dodatno : ", value="**__Učilnica__** :" + str(učilnica) + "\n**__Profesor__** : " + str(profesor) +"\n**__Komentar__** : " +str(komentar), inline=False)
         
         embed.set_footer(text="Unofficial FMF bot")
         embed.set_author(name="uFMF Bot", icon_url="https://orlic.si/luka/FMF/fmf-logo.png")
@@ -239,7 +224,6 @@ class Nadomescanaja(commands.Cog):
             color=discord.Colour.from_rgb(0, 0, 255),
         )
         
-
         for uid, predmet, datum, ura, trajanje, učilnica, role, profesor, komentar, is_current in results:
             embed.add_field(name="\n", value="-------------------------------", inline=False)
             embed.add_field(name="Tehnična oznaka", value=uid, inline=False)
@@ -258,11 +242,6 @@ class Nadomescanaja(commands.Cog):
         embed.set_footer(text="Unofficial FMF bot")
         embed.set_author(name="uFMF Bot", icon_url="https://orlic.si/luka/FMF/fmf-logo.png")
         await ctx.respond(embed=embed)
-
-
-
-
-        
 
 def setup(bot):
     bot.add_cog(Nadomescanaja(bot))
