@@ -11,6 +11,8 @@ load_dotenv()
 
 path = "./cogs/nadomescanja.db"
 
+on_boot = True
+
 def sql_update_current(uid: int, value: int): # A simple sql code used in update_database
     con = sqlite3.connect(path)
     cur = con.cursor()
@@ -45,14 +47,18 @@ def upadte_database(): # Function responsible for checking, which Nadomeščanja
 
         if not after_today(result_date):
             sql_update_current(result_uid, 0)
-            print(f"update_database {result_uid} : Succsess ({result_date}) set to: 0")
+            if on_boot:
+                print(f"update_database {result_uid} : Succsess ({result_date}) set to: 0")
         elif after_today(result_date):
             sql_update_current(result_uid, 1)
-            print(f"update_database {result_uid} : Succsess ({result_date}) set to: 1")
-        else:
+            if on_boot:
+                print(f"update_database {result_uid} : Succsess ({result_date}) set to: 1")
+        elif on_boot:
             print(f"Critical error ---- : Error with updating in {result_uid}, {result_date}")
 upadte_database() # Updates database on boot
+on_boot = False
         
+
 class Nadomescanaja(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -128,10 +134,16 @@ class Nadomescanaja(commands.Cog):
     
         embed.set_footer(text="Unofficial FMF bot")
         embed.set_author(name="uFMF Bot", icon_url="https://orlic.si/luka/FMF/fmf-logo.png")
+        update_database()
+        print("SQL_DB : Updated")
         await ctx.respond(embed=embed, ephemeral = False)
     
     @commands.slash_command()
     async def moja_nadomeščanja(self, ctx: discord.ApplicationContext):
+
+        update_database()
+        print("SQL_DB : Updated")
+        
         results_all_roles = []
         role_ids = list(ctx.author.roles)
         for i in range(len(role_ids)):
@@ -163,6 +175,7 @@ class Nadomescanaja(commands.Cog):
                     embed.add_field(name="Datum in ura:", value= "**__Datum__** : " + str(datum) + "\n**__Ura__** : " + str(ura) + ", " + str(trajanje), inline=True)
                     embed.add_field(name="Dodatno : ", value="**__Učilnica__** :" + str(učilnica) + "\n**__Profesor__** : " + str(profesor) +"\n**__Komentar__** : " +str(komentar), inline=False)
 
+                    
         embed.add_field(name="\n", value="-------------------------------", inline=False)
         
         embed.set_footer(text="Unofficial FMF bot")
@@ -174,6 +187,10 @@ class Nadomescanaja(commands.Cog):
         manage_events=True
     )
     async def vsa_nadomeščanja(self, ctx: discord.ApplicationContext):
+
+        update_database()
+        print("SQL_DB : Updated")
+        
         con = sqlite3.connect(path)
         cur = con.cursor()
 
@@ -189,6 +206,7 @@ class Nadomescanaja(commands.Cog):
             color=discord.Colour.from_rgb(0, 0, 255),
         )
         
+
         for uid, predmet, datum, ura, trajanje, učilnica, role, profesor, komentar, is_current in results:
             embed.add_field(name="\n", value="-------------------------------", inline=False)
             embed.add_field(name="Predmet:", value= str(predmet) + "\n**__Tehnična oznaka__** : " + str(uid), inline=False)
@@ -205,6 +223,10 @@ class Nadomescanaja(commands.Cog):
     )
     @option("Tehnična oznaka", description="Vpišite tehnično oznako nadomeščanja!")
     async def izbriši_nadomeščanje(self, ctx: discord.ApplicationContext, tehnična_oznaka: int):
+
+        update_database()
+        print("SQL_DB : Updated")
+        
         con = sqlite3.connect(path)
         cur = con.cursor()
 
@@ -224,6 +246,7 @@ class Nadomescanaja(commands.Cog):
             color=discord.Colour.from_rgb(0, 0, 255),
         )
         
+
         for uid, predmet, datum, ura, trajanje, učilnica, role, profesor, komentar, is_current in results:
             embed.add_field(name="\n", value="-------------------------------", inline=False)
             embed.add_field(name="Tehnična oznaka", value=uid, inline=False)
