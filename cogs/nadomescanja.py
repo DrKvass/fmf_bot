@@ -26,7 +26,6 @@ def after_today(datum):
     current_date = datetime.now().date()
     datum = (parse(datum, dayfirst=True).date())
     
-    print(datum, current_date)
     if datum > current_date:
         return True
     else:
